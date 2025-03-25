@@ -10,14 +10,19 @@ This package depends on the following packages:
 
 ## Launch Files
 The following launch files are available in this package:
-- `waver_bringup.launch.py`: Launches the Waveshare Rover Simulation with the minimun configuration files without navigation.
-- `waver_bringup_nav.launch.py`: Launches the Waveshare Rover Simulation to perform the mapping operation.
+- `mapping.launch.py`: Launches the mapping operation using the slam_toolbox package.
+- `map_server.launch.py`: Launches the map server node to load a map.
+- `localization.launch.py`: Launches the localization operation using the slam_toolbox package.
 
 ## Mapping
-The mapping operation is performed using the slam_toolbox package. The following launch files are available in this package:
-- `waver_mapping.launch.py`: Launches the mapping operation using the slam_toolbox package.
+The mapping operation is performed using the slam_toolbox package:
+```bash
+ros2 launch waver_bringup mapping.launch.py
+```
 
 To save the map, run the following command:
 ```bash
-ros2 run nav2_map_server map_saver_cli -f my_map
+ros2 run nav2_map_server map_saver_cli -f custom_map
 ```
+
+Then move the custom_map.pgm and custom_map.yaml files to the [`maps`](./maps/) directory.
