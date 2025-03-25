@@ -13,7 +13,7 @@ def generate_launch_description():
     rviz_config_file = os.path.join(
         get_package_share_directory('waver_bringup'),
         'rviz',
-        'config_map.rviz'
+        'mapping.rviz'
     )
     
     rviz = Node(
