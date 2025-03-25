@@ -66,6 +66,14 @@ def generate_launch_description():
         arguments=['-d', rviz_config_file],
         parameters=[{'use_sim_time': use_sim_time}]
     )
+    
+    ## ParticleCloud to PoseArray conversion
+    particlecloud_to_posearray = Node(
+        package='waver_bringup',
+        executable='particlecloud_bridge',
+        name='particlecloud_bridge',
+        output='screen'
+    )
 
     return LaunchDescription([
         DeclareLaunchArgument(
@@ -79,5 +87,6 @@ def generate_launch_description():
         map_server,
         amcl,
         lifecycle_manager,
-        rviz
+        rviz,
+        particlecloud_to_posearray,
     ])
