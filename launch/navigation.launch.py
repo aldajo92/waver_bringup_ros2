@@ -1,63 +1,45 @@
 from launch import LaunchDescription
-from launch.actions import IncludeLaunchDescription, DeclareLaunchArgument, TimerAction
+from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
 from launch.launch_description_sources import PythonLaunchDescriptionSource
-from launch_ros.actions import Node, LifecycleNode
 from launch.substitutions import LaunchConfiguration
+from launch_ros.actions import Node
 from ament_index_python.packages import get_package_share_directory
 from launch.actions import TimerAction
 import os
 
 def generate_launch_description():
     use_sim_time = LaunchConfiguration('use_sim_time')
-    
-    waver_description_dir = get_package_share_directory('waver_description')
-    view_launch_file = os.path.join(waver_description_dir, 'launch', 'view_gazebo.launch.py')
+    namespace = LaunchConfiguration('namespace')
 
+    # Directories
     bringup_dir = get_package_share_directory('waver_bringup')
-    map_file = os.path.join(bringup_dir, 'maps', 'custom_map.yaml')
-    
-    # AMCL node for localization
-    amcl = Node(
-        name='waver_amcl',
-        package='nav2_amcl',
-        executable='amcl',
-        output='screen',
-        parameters=[os.path.join(bringup_dir,'params','nav2_params.yaml')],
-    )
+    nav2_bringup_dir = get_package_share_directory('nav2_bringup')
+    description_dir = get_package_share_directory('waver_description')
 
-    # Launch map_server as lifecycle node
-    map_server = LifecycleNode(
-        package='nav2_map_server',
-        executable='map_server',
-        name='map_server',
-        namespace='',
-        output='screen',
-        parameters=[{
-            'use_sim_time': use_sim_time,
-            'yaml_filename': map_file
-        }]
-    )
+    # Paths
+    map_yaml_path = os.path.join(bringup_dir, 'maps', 'custom_map.yaml')
+    nav2_param_path = os.path.join(bringup_dir, 'params', 'dwb_nav_params.yaml')
+    rviz_config_file = os.path.join(bringup_dir, 'rviz', 'navigation.rviz')
+    view_launch_file = os.path.join(description_dir, 'launch', 'view_gazebo.launch.py')
 
-    # Lifecycle manager to auto-configure + activate map_server and amcl
-    lifecycle_manager = TimerAction(
-        period=3.0,
-        actions=[
-            Node(
-                package='nav2_lifecycle_manager',
-                executable='lifecycle_manager',
-                name='lifecycle_manager_localization',
-                output='screen',
-                parameters=[{
+    # Nav2 Bringup Launcher
+    nav2_bringup = TimerAction(
+    period=3.0,
+    actions=[
+            IncludeLaunchDescription(
+                PythonLaunchDescriptionSource([nav2_bringup_dir, '/launch', '/bringup_launch.py']),
+                launch_arguments={
+                    'map': map_yaml_path,
                     'use_sim_time': use_sim_time,
-                    'autostart': True,
-                    'node_names': ['map_server']
-                }]
+                    'namespace': namespace,
+                    'params_file': nav2_param_path,
+                    'autostart': 'true'
+                }.items()
             )
         ]
     )
 
-    # RViz2 node
-    rviz_config_file = os.path.join(bringup_dir, 'rviz', 'localization.rviz')
+    # RViz
     rviz = Node(
         package='rviz2',
         executable='rviz2',
@@ -66,8 +48,8 @@ def generate_launch_description():
         arguments=['-d', rviz_config_file],
         parameters=[{'use_sim_time': use_sim_time}]
     )
-    
-    ## ParticleCloud to PoseArray conversion
+
+    # ParticleCloud bridge
     particlecloud_to_posearray = Node(
         package='waver_bringup',
         executable='particlecloud_bridge',
@@ -76,17 +58,13 @@ def generate_launch_description():
     )
 
     return LaunchDescription([
-        DeclareLaunchArgument(
-            'use_sim_time',
-            default_value='true',
-            description='Use simulation time'
-        ),
+        DeclareLaunchArgument('use_sim_time', default_value='true', description='Use simulation time'),
+        DeclareLaunchArgument('namespace', default_value='', description='Namespace'),
         IncludeLaunchDescription(
-            PythonLaunchDescriptionSource(view_launch_file)
+            PythonLaunchDescriptionSource(view_launch_file),
+            launch_arguments={'use_sim_time': use_sim_time}.items()
         ),
-        map_server,
-        amcl,
-        lifecycle_manager,
+        nav2_bringup,
         rviz,
-        particlecloud_to_posearray,
+        particlecloud_to_posearray
     ])
