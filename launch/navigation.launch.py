@@ -22,7 +22,7 @@ def generate_launch_description():
         package='nav2_amcl',
         executable='amcl',
         output='screen',
-        parameters=[os.path.join(bringup_dir,'params','waver_amcl_params.yaml')],
+        parameters=[os.path.join(bringup_dir,'params','nav2_params.yaml')],
     )
 
     # Launch map_server as lifecycle node
@@ -50,7 +50,7 @@ def generate_launch_description():
                 parameters=[{
                     'use_sim_time': use_sim_time,
                     'autostart': True,
-                    'node_names': ['map_server', 'waver_amcl']
+                    'node_names': ['map_server']
                 }]
             )
         ]
