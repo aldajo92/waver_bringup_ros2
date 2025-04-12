@@ -4,7 +4,7 @@ from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch_ros.actions import Node, LifecycleNode
 from launch.substitutions import LaunchConfiguration
 from ament_index_python.packages import get_package_share_directory
-from launch.actions import TimerAction
+from launch.actions import TimerAction, ExecuteProcess
 import os
 
 def generate_launch_description():
@@ -22,7 +22,7 @@ def generate_launch_description():
         package='nav2_amcl',
         executable='amcl',
         output='screen',
-        parameters=[os.path.join(bringup_dir,'params','nav2_params.yaml')],
+        parameters=[os.path.join(bringup_dir,'params','waver_amcl_params.yaml')],
     )
 
     # Launch map_server as lifecycle node
@@ -38,7 +38,7 @@ def generate_launch_description():
         }]
     )
 
-    # Lifecycle manager to auto-configure + activate map_server
+    # Lifecycle manager to auto-configure + activate map_server and amcl
     lifecycle_manager = TimerAction(
         period=3.0,
         actions=[
@@ -50,7 +50,7 @@ def generate_launch_description():
                 parameters=[{
                     'use_sim_time': use_sim_time,
                     'autostart': True,
-                    'node_names': ['map_server']
+                    'node_names': ['map_server', 'waver_amcl']
                 }]
             )
         ]
