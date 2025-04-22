@@ -26,7 +26,7 @@ def generate_launch_description():
                                      }])
 
     bringup_dir = get_package_share_directory('waver_bringup')
-    map_file = os.path.join(bringup_dir, 'maps', 'house_map.yaml')
+    map_file = os.path.join(bringup_dir, 'maps', 'apto_map.yaml')
     
     # AMCL node for localization
     amcl = Node(

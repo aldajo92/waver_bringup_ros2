@@ -24,6 +24,7 @@ class CalibrationExperiment(Node):
         self.initial_position = None
         self.distance_moved = 0.0
         self.odometry_reset_done = False
+        self.waiting_for_first_odom = False
 
         # Timers
         self.reset_timer = self.create_timer(0.5, self.reset_odometry_timer)
@@ -33,14 +34,15 @@ class CalibrationExperiment(Node):
         if not self.odometry_reset_done and self.reset_client.service_is_ready():
             self.get_logger().info('Calling /reset_odometry...')
             req = Empty.Request()
-            result = self.reset_client.call(req)
-            if result is not None:
+            future = self.reset_client.call_async(req)
+
+            def on_reset_complete(fut):
                 self.get_logger().info('Odometry reset complete.')
                 self.odometry_reset_done = True
-                self.initial_position = None  # Reset initial position
+                self.waiting_for_first_odom = True
                 self.reset_timer.cancel()
-            else:
-                self.get_logger().warn('Failed to call /reset_odometry')
+
+            future.add_done_callback(on_reset_complete)
 
     def send_velocity(self):
         msg = Twist()
@@ -56,8 +58,12 @@ class CalibrationExperiment(Node):
         x = msg.pose.pose.position.x
         y = msg.pose.pose.position.y
 
-        if self.initial_position is None:
+        if self.waiting_for_first_odom:
             self.initial_position = (x, y)
+            self.waiting_for_first_odom = False
+            return
+
+        if self.initial_position is None:
             return
 
         dx = x - self.initial_position[0]
@@ -65,7 +71,7 @@ class CalibrationExperiment(Node):
         self.distance_moved = math.sqrt(dx * dx + dy * dy)
 
     def control_loop(self):
-        if self.odometry_reset_done:
+        if self.odometry_reset_done and not self.control_timer.is_canceled():
             self.send_velocity()
             if self.distance_moved >= self.target_distance:
                 self.get_logger().info(f'Target distance reached: {self.distance_moved:.2f} m')
@@ -79,4 +85,4 @@ def main(args=None):
     node = CalibrationExperiment()
     rclpy.spin(node)
     node.destroy_node()
-    rclpy.shutdown()
+    # rclpy.shutdown() is called inside the node now
