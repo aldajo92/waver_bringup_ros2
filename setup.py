@@ -26,6 +26,7 @@ setup(
     entry_points={
         'console_scripts': [
             'particlecloud_bridge = waver_bringup.particlecloud_bridge:main',
+            'calibration_experiment = waver_bringup.calibration_experiment:main',
         ],
     },
 )
