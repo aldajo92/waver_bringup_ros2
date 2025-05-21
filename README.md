@@ -10,14 +10,16 @@ This package depends on the following packages:
 
 ## Launch Files
 The following launch files are available in this package:
-- `mapping.launch.py`: Launches the mapping operation using the slam_toolbox package.
-- `map_server.launch.py`: Launches the map server node to load a map.
-- `localization.launch.py`: Launches the localization operation using the slam_toolbox package.
+- `sim_mapping.launch.py`: Launches the mapping operation using the slam_toolbox package.
+- `sim_map_server.launch.py`: Launches the map server node to load a map.
+- `sim_localization.launch.py`: Launches the localization operation using the slam_toolbox package.
+- `sim_navigation.launch.py` : Launches the navigation stack.
+- `sim_docking.launch.py` : Launches the docking algorithm.
 
 ## Mapping
 The mapping operation is performed using the slam_toolbox package:
 ```bash
-ros2 launch waver_bringup mapping.launch.py
+ros2 launch waver_bringup sim_mapping.launch.py
 ```
 
 To save the map, run the following command:
